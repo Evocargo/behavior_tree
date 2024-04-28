@@ -1,3 +1,5 @@
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/Evocargo/behavior_tree/ci.yml)
+
 # Behavior Tree Framework Libraries
 
 Behavior Tree is a framework for writing a control architecture for any mission
