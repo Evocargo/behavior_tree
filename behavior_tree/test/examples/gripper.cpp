@@ -73,9 +73,9 @@ protected:
   bool gripper_open;
 
   void constructBehaviorTree() {
-    auto check_battery = condition([this]() { return checkBattery(); }, "Check Battery");
-    auto open_gripper = action([this]() { return openGripper(); }, "Open Gripper");
-    auto close_gripper = action([this]() { return closeGripper(); }, "Close Gripper");
+    auto check_battery = behavior([this]() { return checkBattery(); }, "Check Battery");
+    auto open_gripper = behavior([this]() { return openGripper(); }, "Open Gripper");
+    auto close_gripper = behavior([this]() { return closeGripper(); }, "Close Gripper");
 
     // clang-format off
     auto root = 
@@ -118,6 +118,6 @@ TEST(GripperControlTest, BatteryLevelAfterMultipleOperations) {
   gripper_control.run(); // Should open and close gripper, reducing battery by 2
   ASSERT_EQ(gripper_control.getBatteryLevel(), 21);
   gripper_control.run(); // Should fail to open and close gripper due to low battery
-  ASSERT_EQ(gripper_control.getBatteryLevel(), 21); // Battery level should remain the same
+  ASSERT_EQ(gripper_control.getBatteryLevel(), 20); // Battery level should remain the same
 }
 

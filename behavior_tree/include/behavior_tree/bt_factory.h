@@ -78,6 +78,18 @@ condition(std::function<Status()> behavior,
 }
 
 /**
+ * @brief Creates a behavior node with a Status-returning behavior.
+ *
+ * @param behavior A behavior the node should execute, returning a Status.
+ * @param description A text description.
+ * @return BehaviorPtr A behavior node.
+ */
+[[nodiscard]] inline BehaviorPtr
+behavior(std::function<Status()> behavior,
+         std::string const &description = "") {
+  return std::make_shared<Condition>(behavior, description);
+}
+/**
  * @brief Creates a sequence node.
  *
  * @tparam Args BehaviorPtr.
