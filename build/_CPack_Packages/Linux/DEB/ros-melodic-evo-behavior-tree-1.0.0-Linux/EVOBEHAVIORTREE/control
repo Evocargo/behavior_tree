@@ -1,0 +1,10 @@
+Architecture: amd64
+Depends: behavior-tree
+Description: ROS-dependent Behavior Tree library wrapper.
+Maintainer: Evgeniy Safronov <evgeniy.safronov@evocargo.com>
+Package: ros-melodic-evo-behavior-tree
+Priority: optional
+Section: devel
+Version: 1.0.0
+Installed-Size: 264
+
