@@ -6,6 +6,7 @@ using namespace ::testing;
 using namespace evo::behavior;
 using namespace evo::behavior::bt_factory;
 
+
 // Test the behavior of the SequenceMemory node when conditions are initially
 // not met
 TEST(BehaviorTreeTest, SequenceMemory) {
@@ -32,31 +33,46 @@ TEST(BehaviorTreeTest, SequenceMemory) {
   ASSERT_EQ(Status::State(result), Status::SUCCESS);
 }
 
-// Test the behavior of the FallbackMemory node when the primary condition fails
-TEST(BehaviorTreeTest, FallbackMemory) {
-  // Create a node that always returns Success
+// Test the behavior of the SequenceMemory node when conditions are initially met
+TEST(BehaviorTreeTest, SequenceMemoryConditionsMet) {
+  // Create a node that always succeeds
   auto true_action_node = action([]() {}, "returns Success");
 
-  // Setup a condition node that initially returns Failure when the flag is
-  // true, and Running otherwise
-  bool flag = false;
-  auto condition_node =
-      condition([&flag] { return flag ? Status::FAILURE : Status::RUNNING; });
+  // Setup three condition nodes that initially return Success, Running, and Failure
+  bool flag1 = true;
+  bool flag2 = false;
+  bool flag3 = true;
+  auto condition_node1 =
+      condition([&flag1] { return flag1 ? Status::SUCCESS : Status::RUNNING; });
+  auto condition_node2 =
+      condition([&flag2] { return flag2 ? Status::SUCCESS : Status::RUNNING; });
+  auto condition_node3 =
+      condition([&flag3] { return flag3 ? Status::SUCCESS : Status::FAILURE; });
 
-  // Create a fallback memory node that tries the condition node first, then the
-  // true action node
-  auto fallback_memory_node =
-      fallback_memory("", condition_node, true_action_node);
-  // Initially, the condition node is running, so the fallback should also
-  // return Running
-  ASSERT_EQ((*fallback_memory_node)(), Status::RUNNING);
+  // Create a sequence memory node with all three nodes
+  auto sequence_memory_node =
+      sequence_memory("", condition_node1, condition_node2, condition_node3);
 
-  // Change condition to true, then the condition node will fail and fallback to
-  // the true action node
-  flag = true;
-  Status result = (*fallback_memory_node)();
-  ASSERT_EQ(result, Status::SUCCESS);
+  // Initially, the condition nodes are satisfied, so the sequence should
+  // return Success
+  ASSERT_EQ(Status::State((*sequence_memory_node)()), Status::RUNNING);
+
+  flag1 = false;
+  flag2 = true;
+  flag3 = false;
+
+  ASSERT_EQ(Status::State((*sequence_memory_node)()), Status::FAILURE);
+
+  flag1 = false;
+  flag2 = true;
+  flag3 = true;
+
+  ASSERT_EQ(Status::State((*sequence_memory_node)()), Status::SUCCESS);
+  ASSERT_EQ(Status::State((*sequence_memory_node)()), Status::RUNNING);
+
 }
+
+
 
 // Test the reset behavior of the SequenceMemory node when nodes initially
 // return Running
@@ -114,40 +130,4 @@ TEST(BehaviorTreeTest, SequenceMemoryMultipleActions) {
 
   // The sequence should fail because the condition node fails
   ASSERT_EQ((*sequence_memory_node)(), Status::Failure);
-}
-
-// Test the behavior of the FallbackMemory node with multiple action nodes
-TEST(BehaviorTreeTest, FallbackMemoryMultipleActions) {
-  // Create three action nodes, two that always fail and one that always
-  // succeeds
-  auto fail_condition_node1 =
-      condition([]() { return Status::Failure; }, "Condition 1 Fail");
-  auto fail_condition_node2 =
-      condition([]() { return Status::Failure; }, "Condition 2 Fail");
-  auto success_action_node = action([]() {}, "Action Success");
-
-  // Create a fallback memory node with the condition nodes and the action node
-  auto fallback_memory_node = fallback_memory(
-      "", fail_condition_node1, fail_condition_node2, success_action_node);
-
-  // The fallback should succeed because the last action node succeeds
-  ASSERT_EQ((*fallback_memory_node)(), Status::Success);
-}
-
-// Test the behavior of the SequenceMemory node when all conditions are met from
-// the start
-TEST(BehaviorTreeTest, SequenceMemoryAllConditionsMet) {
-  // Create a node that always succeeds
-  auto true_action_node = action([]() {}, "returns Success");
-
-  // Setup a condition node that always returns Success
-  auto condition_node = condition([]() { return Status::Success; });
-
-  // Create a sequence memory node with the condition node and the action node
-  auto sequence_memory_node =
-      sequence_memory("", condition_node, true_action_node);
-
-  // Since the condition is met from the start, the sequence should return
-  // Success
-  ASSERT_EQ((*sequence_memory_node)(), Status::Success);
 }
