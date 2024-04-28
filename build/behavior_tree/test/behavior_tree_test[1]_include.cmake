@@ -1,5 +1,0 @@
-if(EXISTS "/home/evgeniy/Documents/code/test/behavior_tree/build/behavior_tree/test/behavior_tree_test[1]_tests.cmake")
-  include("/home/evgeniy/Documents/code/test/behavior_tree/build/behavior_tree/test/behavior_tree_test[1]_tests.cmake")
-else()
-  add_test(behavior_tree_test_NOT_BUILT behavior_tree_test_NOT_BUILT)
-endif()

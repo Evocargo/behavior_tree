@@ -1,2 +1,0 @@
-/usr/bin/ar qc ../devel/lib/libevo_behavior_tree.a CMakeFiles/evo_behavior_tree.dir/src/empty.cpp.o
-/usr/bin/ranlib ../devel/lib/libevo_behavior_tree.a
