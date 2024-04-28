@@ -79,7 +79,8 @@ public:
    *
    * @return const Children& A vector of child nodes.
    */
-  virtual const Children &children() const;
+
+  const Children &children() const;
 
   /**
    * @brief Resets node state to its initial condition, if applicable.

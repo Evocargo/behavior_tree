@@ -43,7 +43,7 @@ public:
   void clearPickTask() { pick = std::nullopt; }
 
   void clearPlaceTask() { place = std::nullopt; }
-  
+
   BehaviorPtr make_subtree() {
     // clang-format off
     
@@ -147,9 +147,8 @@ public:
     );
     // clang-format on
   }
- 
-  
 };
+
 class PickAndPlaceArmMock : public PickAndPlaceArm {
 public:
   PickAndPlaceArmMock() {
@@ -192,8 +191,8 @@ public:
 
 public:
   TwoArmsRobot(std::shared_ptr<PickAndPlaceArm> left,
-               std::shared_ptr<PickAndPlaceArm> right, bool use_raw = false)
-      : left_arm(left), right_arm(right), bt(make_tree(use_raw)) {}
+               std::shared_ptr<PickAndPlaceArm> right)
+      : left_arm(left), right_arm(right), bt(make_tree()) {}
 
   void addTask(const Task &pickTask, const Task &placeTask) {
     tasks.push(std::make_pair(pickTask, placeTask));
@@ -204,7 +203,7 @@ public:
   }
 
 protected:
-  BehaviorPtr make_tree(bool use_raw) {
+  BehaviorPtr make_tree() {
     auto check_queue_not_empty = condition([this]() { return !tasks.empty(); },
                                            "Check if Task Queue is Not Empty");
 
@@ -219,31 +218,20 @@ protected:
           "Assign Task to Arm");
     };
 
-    // clang-format off
-    auto arm = [
-      this, 
-      check_queue_not_empty,
-      assign_task_to_arm,
-      use_raw
-    ]
-    (std::shared_ptr<PickAndPlaceArm> arm_ptr) 
-    {
-        return 
-        sequence(
-            use_raw
-            ? arm_ptr->make_subtree_raw()
-            : arm_ptr->make_subtree(),
-            check_queue_not_empty,
-            assign_task_to_arm(arm_ptr)
-        );
-    };
-
-    auto root = 
-    parallel(
-      arm(left_arm),
-      arm(right_arm)
-    );
-    // clang-format on
+    auto create_sequence_for_arm =
+        [this, check_queue_not_empty,
+         assign_task_to_arm](std::shared_ptr<PickAndPlaceArm> arm) {
+          // clang-format off
+            return 
+            sequence(
+                arm->make_subtree(),
+                check_queue_not_empty,
+                assign_task_to_arm(arm)
+            );
+          // clang-format on
+        };
+    auto root = parallel(create_sequence_for_arm(left_arm),
+                         create_sequence_for_arm(right_arm));
 
     return root;
   }
@@ -288,7 +276,7 @@ TEST(TwoArmsRobotTest, OneTask) {
 TEST(TwoArmsRobotTest, TwoTasks) {
   auto left_arm_mock = std::make_shared<PickAndPlaceArmMock>();
   auto right_arm_mock = std::make_shared<PickAndPlaceArmMock>();
-  TwoArmsRobot robot(left_arm_mock, right_arm_mock, true);
+  TwoArmsRobot robot(left_arm_mock, right_arm_mock);
 
   Task pickTask1{1.0, 2.0, 3.0};
   Task placeTask1{4.0, 5.0, 6.0};
