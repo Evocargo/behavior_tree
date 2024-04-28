@@ -21,7 +21,9 @@ jobs:
         cd /usr/src/gtest
         cmake CMakeLists.txt
         make
-        cp *.a /usr/lib
+        cp lib/*.a /usr/lib
+        ln -s /usr/lib/libgtest.a /usr/local/lib/libgtest.a
+        ln -s /usr/lib/libgtest_main.a /usr/local/lib/libgtest_main.a
         cd $GITHUB_WORKSPACE
 
     - name: Configure and Build
