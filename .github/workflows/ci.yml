@@ -10,7 +10,7 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
     container: 
-      image: ros:melodic-ros-base
+      image: ros:noetic-ros-base
 
     steps:
     - uses: actions/checkout@v2
