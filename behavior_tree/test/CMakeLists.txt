@@ -9,7 +9,7 @@ FetchContent_Declare(gtest
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 set(BUILD_GMOCK OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(gtest)
-find_package(GTest CONFIG REQUIRED)
+
 include(GoogleTest)
 
 set(TEST_PROJECT ${PROJECT_NAME}_test)
@@ -32,9 +32,7 @@ target_link_libraries(
   ${TEST_PROJECT}
   PRIVATE
     ${PROJECT_NAME}
-  PUBLIC
-    GTest::gtest
-    GTest::gmock
+    gtest_main
 )
 
 message(STATUS "Discovering tests.")
