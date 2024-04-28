@@ -79,7 +79,7 @@ public:
    *
    * @return const Children& A vector of child nodes.
    */
-  const Children &children() const;
+  virtual const Children &children() const;
 
   /**
    * @brief Resets node state to its initial condition, if applicable.
@@ -95,6 +95,7 @@ private:
   std::string type_;
   /// The node's description.
   std::string description_;
+protected:
   /// The node's child nodes.
   Children children_;
 };
