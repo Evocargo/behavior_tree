@@ -1,0 +1,32 @@
+name: C++ CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    container: 
+      image: ros:noetic-ros-base
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup Environment
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake g++ ninja-build 
+
+    - name: Configure and Build
+      run: |
+        mkdir build
+        cd build
+        cmake -DBUILD_TESTS=ON -DCATKIN_BUILD_BINARY_PACKAGE=OFF ..
+        cmake --build . -j8
+
+    - name: Run tests
+      run: |
+        cd build
+        ctest
