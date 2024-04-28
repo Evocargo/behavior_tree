@@ -1,5 +1,5 @@
 #include "../include/behavior_tree/bt_base.h"
-#include <gmock/gmock.h>
+#include <gtest/gtest.h>
 #include <optional>
 #include <queue>
 
