@@ -1,0 +1,61 @@
+.vscode
+__pycache__
+*.pyc
+*idea
+*dist*
+*egg-info
+devel/
+build/
+*.bag
+*.bj
+doxygen/
+*cmake-build-debug*
+*cmake-build-release*
+*cmake-build*
+
+# Folders
+BUILD/
+Debug/
+Realese/
+
+# Thirdparty folders which are
+# downloaded during build (not submodules)
+
+# Build results
+*.user
+
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# OS X specific
+*.DS_Store
+.DS_Store
+.DS_Store?
+
+install_script.zsh
