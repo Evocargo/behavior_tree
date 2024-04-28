@@ -40,6 +40,10 @@ public:
     battery_level = level;
   }
 
+  int getBatteryLevel() const {
+    return battery_level;
+  }
+
   bool checkBattery() {
     return battery_level > 20; // Assume battery is ok if above 20%
   }
@@ -47,6 +51,7 @@ public:
   Status openGripper() {
     if (checkBattery()) {
       gripper_open = true;
+      battery_level--;
       return Status::Success;
     }
     return Status::Failure;
@@ -55,6 +60,7 @@ public:
   Status closeGripper() {
     if (checkBattery()) {
       gripper_open = false;
+      battery_level--;
       return Status::Success;
     }
     return Status::Failure;
@@ -103,3 +109,15 @@ TEST(GripperControlTest, CloseGripperFailure) {
   gripper_control.setBatteryLevel(10);
   ASSERT_EQ(gripper_control.closeGripper(), Status::Failure);
 }
+
+TEST(GripperControlTest, BatteryLevelAfterMultipleOperations) {
+  GripperControl gripper_control;
+  gripper_control.setBatteryLevel(25);
+  gripper_control.run(); // Should open and close gripper, reducing battery by 2
+  ASSERT_EQ(gripper_control.getBatteryLevel(), 23);
+  gripper_control.run(); // Should open and close gripper, reducing battery by 2
+  ASSERT_EQ(gripper_control.getBatteryLevel(), 21);
+  gripper_control.run(); // Should fail to open and close gripper due to low battery
+  ASSERT_EQ(gripper_control.getBatteryLevel(), 21); // Battery level should remain the same
+}
+
