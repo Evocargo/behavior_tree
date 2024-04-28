@@ -45,24 +45,26 @@ public:
   void clearPlaceTask() { place = std::nullopt; }
 
   BehaviorPtr make_subtree() {
-    auto pick_object_action = action(
-        [this]() {
-          if (pick.has_value()) {
-            pickObject(*pick);
-          }
-        },
-        "Pick Object Action");
+    // clang-format off
+    
+    auto pick_object_action = 
+    action(
+      [this]() { pickObject(*pick);},
+      "Pick Object Action"
+    );
 
     auto is_object_picked = condition([this]() { return is_pick_successful; },
                                       "Check Pick Successful");
 
-    auto place_object_action = action(
-        [this]() {
-          if (place.has_value()) {
-            placeObject(*place);
-          }
-        },
-        "Place Object Action");
+    auto place_object_action = 
+    action(
+      [this]() {
+        if (place.has_value()) {
+          placeObject(*place);
+        }
+      },
+      "Place Object Action"
+    );
 
     auto is_object_placed = condition([this]() { return is_place_successful; },
                                       "Check Place Successful");
@@ -75,35 +77,35 @@ public:
     auto has_place_task = condition([this]() { return place.has_value(); },
                                     "Check Place Task Available");
 
-    // clang-format off
-        return 
-        fallback(
-            sequence(
-                not_(has_pick_task),
-                not_(has_place_task)
-            ),
-            sequence(
-                fallback(
+
+    return 
+    fallback(
+        sequence(
+            not_(has_pick_task),
+            not_(has_place_task)
+        ),
+        sequence(
+            fallback(
+                is_object_picked,
+                sequence_memory(
+                    has_pick_task,
+                    is_gripper_free_condition,
+                    pick_object_action,
                     is_object_picked,
-                    sequence_memory(
-                        has_pick_task,
-                        is_gripper_free_condition,
-                        pick_object_action,
-                        is_object_picked,
-                        action([this]() { clearPickTask(); }, "Clear Pick Task")
-                    )
-                ),
-                fallback(
+                    action([this]() { clearPickTask(); }, "Clear Pick Task")
+                )
+            ),
+            fallback(
+                is_object_placed,
+                sequence_memory(
+                    has_place_task,
+                    place_object_action,
                     is_object_placed,
-                    sequence_memory(
-                        has_place_task,
-                        place_object_action,
-                        is_object_placed,
-                        action([this]() { clearPlaceTask(); }, "Clear Place Task")
-                    )
+                    action([this]() { clearPlaceTask(); }, "Clear Place Task")
                 )
             )
-        );
+        )
+    );
     // clang-format on
   }
 };
