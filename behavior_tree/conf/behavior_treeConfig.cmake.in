@@ -1,0 +1,10 @@
+# This file exports CMake target which should be passed to the
+# target_link_libraries command.
+
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+
+include("${CMAKE_CURRENT_LIST_DIR}/behavior_treeTargets.cmake")
+
+set (behavior_tree_FOUND 1)
