@@ -18,11 +18,7 @@ set(CMAKE_INSTALL_DEFAULT_COMPONENT_NAME ${COMPONENT_NAME})
 ####################################################################
 ##                  ADD COMPILE TIME DEFINITIONS                  ##
 ####################################################################
-if(BUILD_TESTS)
-  message(STATUS "Tests building is enabled.")
-  find_package(GTest CONFIG REQUIRED)
-  enable_testing()
-endif()
+
 
 option(ENABLE_LOGGING "Build with logs enabled" ON)
 
@@ -85,7 +81,6 @@ target_link_libraries(
   ${PROJECT_NAME}
   PUBLIC
     behavior_tree
-    yaml-cpp
     catkin_wrapper
 )
 
