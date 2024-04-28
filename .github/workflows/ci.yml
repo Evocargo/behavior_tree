@@ -19,9 +19,6 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y cmake g++ ninja-build 
 
-    - name: Install gtest
-      uses: MarkusJx/googletest-installer@v1.1
-
     - name: Configure and Build
       run: |
         mkdir build
