@@ -18,6 +18,11 @@ jobs:
       run: |
         apt-get update
         apt-get install -y cmake g++ ninja-build libgtest-dev
+        cd /usr/src/gtest
+        cmake CMakeLists.txt
+        make
+        cp *.a /usr/lib
+        cd $GITHUB_WORKSPACE
 
     - name: Configure and Build
       run: |
