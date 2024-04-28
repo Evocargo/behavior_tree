@@ -13,7 +13,7 @@ struct Task {
   double z;
 };
 
-class PickAndPlaceArm {
+class PickAndPlaceArmBehavior : public BehaviorNode {
 
 public:
   bool is_pick_successful;
@@ -25,11 +25,18 @@ public:
   virtual void pickObject(const Task &task) = 0;
   virtual void placeObject(const Task &task) = 0;
 
-  PickAndPlaceArm()
-      : is_pick_successful(false), is_place_successful(false),
-        is_gripper_free(true), pick(std::nullopt), place(std::nullopt) {}
+  PickAndPlaceArmBehavior()
+      : BehaviorNode("PickAndPlaceArmBehavior", "Handles the behavior of a robotic arm for picking and placing tasks."),
+        is_pick_successful(false), is_place_successful(false),
+        is_gripper_free(true), pick(std::nullopt), place(std::nullopt) {
+    children_.push_back(make_subtree());
+  }
 
-  virtual ~PickAndPlaceArm() {}
+  Status operator()() override {
+    return (*children_.front())();
+  }
+
+  virtual ~PickAndPlaceArmBehavior() {}
 
   void setPickTask(const Task &task) {
     pick = task;
@@ -43,7 +50,7 @@ public:
   void clearPickTask() { pick = std::nullopt; }
 
   void clearPlaceTask() { place = std::nullopt; }
-
+  
   BehaviorPtr make_subtree() {
     // clang-format off
     
@@ -114,44 +121,10 @@ public:
     // clang-format on
   }
 
-  BehaviorPtr make_subtree_raw() {
-    // clang-format off
-    
-    return 
-    fallback(
-        sequence(
-            not_(condition([this]() { return pick.has_value(); }, "Check Pick Task Available")),
-            not_(condition([this]() { return place.has_value(); }, "Check Place Task Available"))
-        ),
-        sequence(
-            fallback(
-                condition([this]() { return is_pick_successful; }, "Check Pick Successful"),
-                sequence_memory(
-                    condition([this]() { return pick.has_value(); }, "Check Pick Task Available"),
-                    condition([this]() { return is_gripper_free; }, "Check Gripper Free"),
-                    action([this]() { pickObject(*pick); }, "Pick Object Action"),
-                    condition([this]() { return is_pick_successful; }, "Check Pick Successful"),
-                    action([this]() { clearPickTask(); }, "Clear Pick Task")
-                )
-            ),
-            fallback(
-                condition([this]() { return is_place_successful; }, "Check Place Successful"),
-                sequence_memory(
-                    condition([this]() { return place.has_value(); }, "Check Place Task Available"),
-                    action([this]() { if (place.has_value()) { placeObject(*place); } }, "Place Object Action"),
-                    condition([this]() { return is_place_successful; }, "Check Place Successful"),
-                    action([this]() { clearPlaceTask(); }, "Clear Place Task")
-                )
-            )
-        )
-    );
-    // clang-format on
-  }
 };
-
-class PickAndPlaceArmMock : public PickAndPlaceArm {
+class PickAndPlaceArmBehaviorMock : public PickAndPlaceArmBehavior {
 public:
-  PickAndPlaceArmMock() {
+  PickAndPlaceArmBehaviorMock() {
     is_pick_successful = false;
     is_place_successful = false;
     is_gripper_free = true;
@@ -164,34 +137,34 @@ public:
     is_place_successful = true; // Simulate successful place
   }
 };
-// Unit tests for PickAndPlaceArmMock
-TEST(PickAndPlaceArmMockTest, PickObjectSuccess) {
-  PickAndPlaceArmMock arm;
+// Unit tests for PickAndPlaceArmBehaviorMock
+TEST(PickAndPlaceArmBehaviorMockTest, PickObjectSuccess) {
+  PickAndPlaceArmBehaviorMock arm;
   Task pick_task{1.0, 2.0, 3.0}; // Coordinates for the task
   arm.setPickTask(pick_task);
   arm.pickObject(*arm.pick);
   ASSERT_TRUE(arm.is_pick_successful);
 }
 
-TEST(PickAndPlaceArmMockTest, PlaceObjectSuccess) {
-  PickAndPlaceArmMock arm;
+TEST(PickAndPlaceArmBehaviorMockTest, PlaceObjectSuccess) {
+  PickAndPlaceArmBehaviorMock arm;
   Task place_task{4.0, 5.0, 6.0}; // Coordinates for the task
   arm.setPlaceTask(place_task);
   arm.placeObject(*arm.place);
   ASSERT_TRUE(arm.is_place_successful);
 }
 
-class TwoArmsRobot {
+class TwoArmBehaviorsRobot {
 public:
-  std::shared_ptr<PickAndPlaceArm> left_arm;
-  std::shared_ptr<PickAndPlaceArm> right_arm;
+  std::shared_ptr<PickAndPlaceArmBehavior> left_arm;
+  std::shared_ptr<PickAndPlaceArmBehavior> right_arm;
   std::queue<std::pair<Task, Task>> tasks;
 
   BehaviorTree bt;
 
 public:
-  TwoArmsRobot(std::shared_ptr<PickAndPlaceArm> left,
-               std::shared_ptr<PickAndPlaceArm> right)
+  TwoArmBehaviorsRobot(std::shared_ptr<PickAndPlaceArmBehavior> left,
+                       std::shared_ptr<PickAndPlaceArmBehavior> right)
       : left_arm(left), right_arm(right), bt(make_tree()) {}
 
   void addTask(const Task &pickTask, const Task &placeTask) {
@@ -206,8 +179,9 @@ protected:
   BehaviorPtr make_tree() {
     auto check_queue_not_empty = condition([this]() { return !tasks.empty(); },
                                            "Check if Task Queue is Not Empty");
-
-    auto assign_task_to_arm = [this](std::shared_ptr<PickAndPlaceArm> arm) {
+  // clang-format off
+   
+    auto assign_task_to_arm = [this](std::shared_ptr<PickAndPlaceArmBehavior> arm) {
       return action(
           [this, arm]() {
             const auto &task_pair = tasks.front();
@@ -218,29 +192,29 @@ protected:
           "Assign Task to Arm");
     };
 
-    auto create_sequence_for_arm =
-        [this, check_queue_not_empty,
-         assign_task_to_arm](std::shared_ptr<PickAndPlaceArm> arm) {
-          // clang-format off
-            return 
-            sequence(
-                arm->make_subtree(),
-                check_queue_not_empty,
-                assign_task_to_arm(arm)
-            );
-          // clang-format on
-        };
-    auto root = parallel(create_sequence_for_arm(left_arm),
-                         create_sequence_for_arm(right_arm));
+    auto root = 
+    parallel(
+      sequence(
+        left_arm,
+        check_queue_not_empty,
+        assign_task_to_arm(left_arm)
+      ),
+      sequence(
+        right_arm,
+        check_queue_not_empty,
+        assign_task_to_arm(right_arm)
+      )
+    );
+    // clang-format on
 
     return root;
   }
 };
 
-TEST(TwoArmsRobotTest, OneTask) {
-  auto left_arm_mock = std::make_shared<PickAndPlaceArmMock>();
-  auto right_arm_mock = std::make_shared<PickAndPlaceArmMock>();
-  TwoArmsRobot robot(left_arm_mock, right_arm_mock);
+TEST(TwoArmBehaviorsRobotTest, OneTask) {
+  auto left_arm_mock = std::make_shared<PickAndPlaceArmBehaviorMock>();
+  auto right_arm_mock = std::make_shared<PickAndPlaceArmBehaviorMock>();
+  TwoArmBehaviorsRobot robot(left_arm_mock, right_arm_mock);
 
   Task pickTask{1.0, 2.0, 3.0};
   Task placeTask{4.0, 5.0, 6.0};
@@ -273,10 +247,10 @@ TEST(TwoArmsRobotTest, OneTask) {
   ASSERT_TRUE(left_arm_mock->is_place_successful);
 }
 
-TEST(TwoArmsRobotTest, TwoTasks) {
-  auto left_arm_mock = std::make_shared<PickAndPlaceArmMock>();
-  auto right_arm_mock = std::make_shared<PickAndPlaceArmMock>();
-  TwoArmsRobot robot(left_arm_mock, right_arm_mock);
+TEST(TwoArmBehaviorsRobotTest, TwoTasks) {
+  auto left_arm_mock = std::make_shared<PickAndPlaceArmBehaviorMock>();
+  auto right_arm_mock = std::make_shared<PickAndPlaceArmBehaviorMock>();
+  TwoArmBehaviorsRobot robot(left_arm_mock, right_arm_mock);
 
   Task pickTask1{1.0, 2.0, 3.0};
   Task placeTask1{4.0, 5.0, 6.0};

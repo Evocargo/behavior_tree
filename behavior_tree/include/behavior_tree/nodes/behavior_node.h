@@ -79,6 +79,7 @@ public:
    *
    * @return const Children& A vector of child nodes.
    */
+
   const Children &children() const;
 
   /**
@@ -95,6 +96,7 @@ private:
   std::string type_;
   /// The node's description.
   std::string description_;
+protected:
   /// The node's child nodes.
   Children children_;
 };
