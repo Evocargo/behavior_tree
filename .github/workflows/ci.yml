@@ -21,7 +21,6 @@ jobs:
 
     - name: Configure and Build
       run: |
-        ./opt/ros/noetic/setup.sh
         mkdir build
         cd build
         cmake -DBUILD_TESTS=ON -DCATKIN_BUILD_BINARY_PACKAGE=OFF ..

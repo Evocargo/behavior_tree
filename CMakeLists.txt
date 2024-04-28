@@ -17,4 +17,3 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 ####################################################################
 
 add_subdirectory(behavior_tree)
-add_subdirectory(evo_behavior_tree)
