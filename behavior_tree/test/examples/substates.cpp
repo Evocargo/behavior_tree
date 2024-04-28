@@ -177,20 +177,29 @@ protected:
           },
           "Assign Task to Arm");
     };
-    auto create_sequence_for_arm =
-        [this, check_queue_not_empty,
-         assign_task_to_arm](std::shared_ptr<PickAndPlaceArm> arm) {
-          // clang-format off
-            return 
-            sequence(
-                arm->make_subtree(),
-                check_queue_not_empty,
-                assign_task_to_arm(arm)
-            );
-          // clang-format on
-        };
-    auto root = parallel(create_sequence_for_arm(left_arm),
-                         create_sequence_for_arm(right_arm));
+
+    // clang-format off
+    auto arm = [
+      this, 
+      check_queue_not_empty,
+      assign_task_to_arm
+    ]
+    (std::shared_ptr<PickAndPlaceArm> arm_ptr) 
+    {
+        return 
+        sequence(
+            arm_ptr->make_subtree(),
+            check_queue_not_empty,
+            assign_task_to_arm(arm_ptr)
+        );
+    };
+
+    auto root = 
+    parallel(
+      arm(left_arm),
+      arm(right_arm)
+    );
+    // clang-format on
 
     return root;
   }
