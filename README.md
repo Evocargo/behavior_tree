@@ -8,7 +8,7 @@ execution system.
 
 ## Provided packages
 
-1. **`evo-behavior-tree`** - behavior tree library package. No dependencies except for STL. 
+1. **`behavior-tree`** - behavior tree library package. No dependencies except for STL. 
 2. **`ros-melodic-evo-behavior-tree`** - ROS wrapper library for the behavior
    tree framework. Created as a static library. [to be released]
 
