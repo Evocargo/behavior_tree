@@ -14,11 +14,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-
     - name: Setup Environment
       run: |
         apt-get update
-        apt-get install -y cmake g++ ninja-build
+        apt-get install -y cmake g++ ninja-build libgtest-dev
 
     - name: Configure and Build
       run: |
