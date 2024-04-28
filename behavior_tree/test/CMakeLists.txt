@@ -9,7 +9,7 @@ FetchContent_Declare(gtest
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 set(BUILD_GMOCK OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(gtest)
-
+find_package(GTest CONFIG REQUIRED)
 include(GoogleTest)
 
 set(TEST_PROJECT ${PROJECT_NAME}_test)
